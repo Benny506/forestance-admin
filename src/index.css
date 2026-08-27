@@ -1,0 +1,61 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: 'GC GRIND Demo';
+  src: url('/fonts/gc-grind-demo.extra-bold.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Tumb Test';
+  src: url('/fonts/tumbtest-regular.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Outfit';
+  src: url('/fonts/Outfit-VariableFont_wght.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Malinton Trial Version';
+  src: url('/fonts/malinton-trial-version.regular.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@theme {
+  --color-primary: #aa3bff;
+
+  /* Custom fonts */
+  --font-outfit: 'Outfit', system-ui, sans-serif;
+  --font-heading: 'GC GRIND Demo', 'Outfit', system-ui, sans-serif;
+  --font-sub: 'DM Sans', system-ui, sans-serif;
+  --font-tumb: 'Tumb Test', system-ui, sans-serif;
+  --font-malinton: 'Malinton Trial Version', serif;
+  --font-outfit: 'Outfit', system-ui, sans-serif;
+}
+
+@layer base {
+  body {
+    @apply bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-50;
+    font-family: var(--font-outfit);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-heading);
+  }
+}
