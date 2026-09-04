@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import type { RootState, AppDispatch } from '../store';
 import { fetchNewsletterSubscriptions, type NewsletterSubscription } from '../store/slices/newsletterSlice';
-import { TopBar } from '../components/layout/TopBar';
 import { useUI } from '../context/UIContext';
 import { useDashboard } from '../context/DashboardContext';
 import { Mail, Calendar, RefreshCw } from 'lucide-react';
@@ -49,8 +48,7 @@ export const NewsletterScreen: React.FC = () => {
 
   return (
     <div className="flex-1 flex flex-col h-full bg-[#FDFDFD]">
-      <TopBar />
-      <div className="p-6 md:p-10 flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto">
         <div className="flex justify-between items-center mb-8">
           <h2 className="font-heading text-xl uppercase text-[#111111]">
             All Subscribers <span className="text-sm text-zinc-400 normal-case ml-2">({items.length})</span>
