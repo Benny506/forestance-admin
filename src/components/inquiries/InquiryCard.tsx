@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import type { ContactSubmission } from '../../store/slices/inquiriesSlice';
 import { Modal } from '../ui/Modal';
-import { Mail, Briefcase, Calendar, Link as LinkIcon, Info, Reply, Copy, Check, ExternalLink, Sparkles } from 'lucide-react';
+import { Mail, Briefcase, Calendar, Link as LinkIcon, Info, Reply, Copy, Check, ExternalLink, Clock } from 'lucide-react';
 import { EmailComposer } from './EmailComposer';
 import { useUI } from '../../context/UIContext';
+import { getTimelineBadgeStyle } from '../../constants/inquiryFilters';
 
 interface InquiryCardProps {
   inquiry: ContactSubmission;
@@ -27,7 +28,11 @@ export const InquiryCard: React.FC<InquiryCardProps> = ({ inquiry }) => {
       : `https://${inquiry.website}`
     : '';
 
-  const isUrgent = inquiry.timeline.some((t) => t.toLowerCase() === 'now');
+  const timelines = Array.isArray(inquiry.timeline)
+    ? inquiry.timeline
+    : typeof inquiry.timeline === 'string'
+    ? [inquiry.timeline]
+    : [];
 
   const handleCopyEmail = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -41,27 +46,15 @@ export const InquiryCard: React.FC<InquiryCardProps> = ({ inquiry }) => {
     <>
       <div 
         onClick={() => setIsModalOpen(true)}
-        className="bg-white border border-[#111111]/10 rounded-2xl p-6 shadow-sm hover:shadow-lg hover:border-[#111111]/30 transition-all duration-200 cursor-pointer flex flex-col justify-between gap-5 group relative overflow-hidden"
+        className="bg-white border border-[#111111]/10 rounded-2xl p-6 shadow-sm hover:shadow-lg hover:border-[#111111]/30 transition-all duration-200 cursor-pointer flex flex-col justify-between gap-5 group"
       >
-        {isUrgent && (
-          <div className="absolute top-0 right-0 w-2.5 h-full bg-[#111111]" title="Urgent Timeline" />
-        )}
-
         <div>
           {/* Header */}
           <div className="flex justify-between items-start gap-3">
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <h3 className="font-heading text-xl text-[#111111] uppercase group-hover:text-black transition-colors truncate">
-                  {inquiry.company}
-                </h3>
-                {isUrgent && (
-                  <span className="flex items-center gap-1 bg-[#111111] text-white text-[11px] font-outfit font-bold uppercase tracking-wider px-2 py-0.5 rounded-full flex-shrink-0">
-                    <Sparkles size={10} />
-                    Now
-                  </span>
-                )}
-              </div>
+              <h3 className="font-heading text-xl text-[#111111] uppercase group-hover:text-black transition-colors truncate">
+                {inquiry.company}
+              </h3>
               <p className="font-outfit text-[#111111]/70 text-sm mt-0.5 font-medium truncate">
                 {inquiry.first_name} {inquiry.last_name}
               </p>
@@ -90,25 +83,32 @@ export const InquiryCard: React.FC<InquiryCardProps> = ({ inquiry }) => {
 
             <div className="flex items-center gap-2.5 text-sm font-outfit text-[#111111]/80">
               <Briefcase size={15} className="text-[#111111]/40 flex-shrink-0" />
-              <span className="truncate font-medium">{inquiry.solve.join(', ')}</span>
+              <span className="truncate font-medium">{(inquiry.solve || []).join(', ')}</span>
             </div>
           </div>
         </div>
 
         {/* Tags footer */}
         <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-[#111111]/5">
-          {inquiry.timeline.map((t, idx) => (
-            <span key={idx} className="font-outfit text-[11px] bg-zinc-100 text-zinc-700 px-2.5 py-0.5 rounded-full font-medium">
-              {t}
+          {timelines.map((t, idx) => (
+            <span
+              key={idx}
+              className={`inline-flex items-center gap-1 font-outfit text-[11px] px-2.5 py-0.5 rounded-full ${getTimelineBadgeStyle(
+                t
+              )}`}
+            >
+              <Clock size={11} className="opacity-70" />
+              <span>{t}</span>
             </span>
           ))}
-          {inquiry.brand_state.slice(0, 1).map((s, idx) => (
-            <span key={idx} className="font-outfit text-[11px] bg-zinc-50 text-zinc-600 border border-zinc-200 px-2 py-0.5 rounded-full">
+
+          {(inquiry.brand_state || []).slice(0, 1).map((s, idx) => (
+            <span key={idx} className="font-outfit text-[11px] bg-zinc-50 text-zinc-600 border border-zinc-200 px-2.5 py-0.5 rounded-full">
               {s}
             </span>
           ))}
-          {inquiry.brand_state.length > 1 && (
-            <span className="font-outfit text-[11px] text-zinc-400">+{inquiry.brand_state.length - 1}</span>
+          {(inquiry.brand_state || []).length > 1 && (
+            <span className="font-outfit text-[11px] text-zinc-400">+{(inquiry.brand_state || []).length - 1}</span>
           )}
         </div>
       </div>
@@ -174,7 +174,7 @@ export const InquiryCard: React.FC<InquiryCardProps> = ({ inquiry }) => {
                 <div>
                   <span className="block text-sm text-zinc-500 mb-2 font-medium">Brand State</span>
                   <div className="flex flex-wrap gap-2">
-                    {inquiry.brand_state.map((state, i) => (
+                    {(inquiry.brand_state || []).map((state, i) => (
                       <span key={i} className="px-3 py-1 bg-black text-white text-sm rounded-full">{state}</span>
                     ))}
                   </div>
@@ -182,7 +182,7 @@ export const InquiryCard: React.FC<InquiryCardProps> = ({ inquiry }) => {
                 <div>
                   <span className="block text-sm text-zinc-500 mb-2 font-medium">Looking to Solve</span>
                   <div className="flex flex-wrap gap-2">
-                    {inquiry.solve.map((goal, i) => (
+                    {(inquiry.solve || []).map((goal, i) => (
                       <span key={i} className="px-3 py-1 border border-[#111111]/20 text-[#111111] text-sm rounded-full font-medium">{goal}</span>
                     ))}
                   </div>
@@ -190,8 +190,15 @@ export const InquiryCard: React.FC<InquiryCardProps> = ({ inquiry }) => {
                 <div>
                   <span className="block text-sm text-zinc-500 mb-2 font-medium">Timeline</span>
                   <div className="flex flex-wrap gap-2">
-                    {inquiry.timeline.map((time, i) => (
-                      <span key={i} className="px-3 py-1 bg-zinc-200 text-zinc-800 text-sm rounded-full font-medium">{time}</span>
+                    {timelines.map((time, i) => (
+                      <span
+                        key={i}
+                        className={`px-3 py-1 text-sm rounded-full font-medium ${getTimelineBadgeStyle(
+                          time
+                        )}`}
+                      >
+                        {time}
+                      </span>
                     ))}
                   </div>
                 </div>

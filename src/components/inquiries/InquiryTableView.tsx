@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import type { ContactSubmission } from '../../store/slices/inquiriesSlice';
 import { Modal } from '../ui/Modal';
-import { Mail, Calendar, Link as LinkIcon, Info, Reply, Copy, Check, ExternalLink, Eye } from 'lucide-react';
+import { Mail, Calendar, Link as LinkIcon, Info, Reply, Copy, Check, ExternalLink, Eye, Clock } from 'lucide-react';
 import { EmailComposer } from './EmailComposer';
 import { useUI } from '../../context/UIContext';
+import { getTimelineBadgeStyle } from '../../constants/inquiryFilters';
 
 interface InquiryTableViewProps {
   submissions: ContactSubmission[];
@@ -29,6 +30,14 @@ export const InquiryTableView: React.FC<InquiryTableViewProps> = ({ submissions 
       : `https://${selectedInquiry.website}`
     : '';
 
+  const selectedTimelines = selectedInquiry
+    ? Array.isArray(selectedInquiry.timeline)
+      ? selectedInquiry.timeline
+      : typeof selectedInquiry.timeline === 'string'
+      ? [selectedInquiry.timeline]
+      : []
+    : [];
+
   return (
     <>
       <div className="w-full overflow-x-auto bg-white border border-[#111111]/10 rounded-2xl shadow-sm">
@@ -50,7 +59,12 @@ export const InquiryTableView: React.FC<InquiryTableViewProps> = ({ submissions 
                 day: 'numeric',
                 year: 'numeric',
               });
-              const isUrgent = inquiry.timeline.some((t) => t.toLowerCase() === 'now');
+
+              const timelines = Array.isArray(inquiry.timeline)
+                ? inquiry.timeline
+                : typeof inquiry.timeline === 'string'
+                ? [inquiry.timeline]
+                : [];
 
               return (
                 <tr
@@ -59,16 +73,9 @@ export const InquiryTableView: React.FC<InquiryTableViewProps> = ({ submissions 
                   className="hover:bg-zinc-50/80 transition-colors cursor-pointer group"
                 >
                   <td className="py-4 px-6">
-                    <div className="flex items-center gap-2">
-                      <span className="font-heading font-semibold uppercase text-zinc-900 group-hover:text-black">
-                        {inquiry.company}
-                      </span>
-                      {isUrgent && (
-                        <span className="bg-[#111111] text-white text-[10px] uppercase font-bold px-2 py-0.5 rounded-full">
-                          Now
-                        </span>
-                      )}
-                    </div>
+                    <span className="font-heading font-semibold uppercase text-zinc-900 group-hover:text-black">
+                      {inquiry.company}
+                    </span>
                   </td>
                   <td className="py-4 px-6">
                     <div className="flex flex-col">
@@ -94,7 +101,7 @@ export const InquiryTableView: React.FC<InquiryTableViewProps> = ({ submissions 
                   </td>
                   <td className="py-4 px-6">
                     <div className="flex flex-wrap gap-1 max-w-[240px]">
-                      {inquiry.solve.slice(0, 2).map((s, idx) => (
+                      {(inquiry.solve || []).slice(0, 2).map((s, idx) => (
                         <span
                           key={idx}
                           className="text-[11px] bg-zinc-100 text-zinc-700 px-2 py-0.5 rounded-md font-medium truncate max-w-[140px]"
@@ -102,21 +109,29 @@ export const InquiryTableView: React.FC<InquiryTableViewProps> = ({ submissions 
                           {s}
                         </span>
                       ))}
-                      {inquiry.solve.length > 2 && (
-                        <span className="text-[11px] text-zinc-400">+{inquiry.solve.length - 2}</span>
+                      {(inquiry.solve || []).length > 2 && (
+                        <span className="text-[11px] text-zinc-400">+{(inquiry.solve || []).length - 2}</span>
                       )}
                     </div>
                   </td>
                   <td className="py-4 px-6 whitespace-nowrap">
-                    <span
-                      className={`text-[12px] px-2.5 py-1 rounded-full font-medium ${
-                        isUrgent
-                          ? 'bg-black text-white font-semibold'
-                          : 'bg-zinc-100 text-zinc-700'
-                      }`}
-                    >
-                      {inquiry.timeline.join(', ') || 'Exploring'}
-                    </span>
+                    <div className="flex flex-wrap gap-1">
+                      {timelines.length > 0 ? (
+                        timelines.map((t, idx) => (
+                          <span
+                            key={idx}
+                            className={`inline-flex items-center gap-1 text-[11px] px-2.5 py-0.5 rounded-full ${getTimelineBadgeStyle(
+                              t
+                            )}`}
+                          >
+                            <Clock size={11} className="opacity-70" />
+                            <span>{t}</span>
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-zinc-400 text-xs">Unspecified</span>
+                      )}
+                    </div>
                   </td>
                   <td className="py-4 px-6 whitespace-nowrap text-xs text-zinc-500">
                     {formattedDate}
@@ -128,7 +143,7 @@ export const InquiryTableView: React.FC<InquiryTableViewProps> = ({ submissions 
                         e.stopPropagation();
                         setSelectedInquiry(inquiry);
                       }}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-zinc-100 hover:bg-black hover:text-white rounded-lg text-xs font-medium transition-all"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-zinc-100 hover:bg-black hover:text-white rounded-lg text-xs font-medium transition-all cursor-pointer"
                     >
                       <Eye size={13} />
                       View
@@ -223,7 +238,7 @@ export const InquiryTableView: React.FC<InquiryTableViewProps> = ({ submissions 
                   <div>
                     <span className="block text-sm text-zinc-500 mb-2 font-medium">Brand State</span>
                     <div className="flex flex-wrap gap-2">
-                      {selectedInquiry.brand_state.map((state, i) => (
+                      {(selectedInquiry.brand_state || []).map((state, i) => (
                         <span key={i} className="px-3 py-1 bg-black text-white text-sm rounded-full">
                           {state}
                         </span>
@@ -233,7 +248,7 @@ export const InquiryTableView: React.FC<InquiryTableViewProps> = ({ submissions 
                   <div>
                     <span className="block text-sm text-zinc-500 mb-2 font-medium">Looking to Solve</span>
                     <div className="flex flex-wrap gap-2">
-                      {selectedInquiry.solve.map((goal, i) => (
+                      {(selectedInquiry.solve || []).map((goal, i) => (
                         <span
                           key={i}
                           className="px-3 py-1 border border-[#111111]/20 text-[#111111] text-sm rounded-full font-medium"
@@ -246,10 +261,12 @@ export const InquiryTableView: React.FC<InquiryTableViewProps> = ({ submissions 
                   <div>
                     <span className="block text-sm text-zinc-500 mb-2 font-medium">Timeline</span>
                     <div className="flex flex-wrap gap-2">
-                      {selectedInquiry.timeline.map((time, i) => (
+                      {selectedTimelines.map((time, i) => (
                         <span
                           key={i}
-                          className="px-3 py-1 bg-zinc-200 text-zinc-800 text-sm rounded-full font-medium"
+                          className={`px-3 py-1 text-sm rounded-full font-medium ${getTimelineBadgeStyle(
+                            time
+                          )}`}
                         >
                           {time}
                         </span>
@@ -257,7 +274,7 @@ export const InquiryTableView: React.FC<InquiryTableViewProps> = ({ submissions 
                     </div>
                   </div>
                   <div>
-                    <span className="block text-sm text-zinc-500 mb-2 font-medium">Source</span>
+                    <span className="block text-sm text-zinc-500 mb-2 font-medium">How they found us</span>
                     <p className="font-medium capitalize text-[#111111] bg-zinc-100 px-3 py-1 rounded-md inline-block text-sm">
                       {selectedInquiry.source || 'Direct'}
                     </p>

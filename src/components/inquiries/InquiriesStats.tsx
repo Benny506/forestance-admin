@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import type { ContactSubmission } from '../../store/slices/inquiriesSlice';
-import { Inbox, Sparkles, Calendar, Filter } from 'lucide-react';
+import { Inbox, Briefcase, Calendar, Filter } from 'lucide-react';
 
 interface InquiriesStatsProps {
   allSubmissions: ContactSubmission[];
@@ -15,10 +15,17 @@ export const InquiriesStats: React.FC<InquiriesStatsProps> = ({
 }) => {
   const totalCount = allSubmissions.length;
 
-  const urgentCount = useMemo(() => {
-    return allSubmissions.filter((sub) =>
-      sub.timeline.some((t) => t.toLowerCase() === 'now')
-    ).length;
+  // Compute most popular requested goal/service
+  const topService = useMemo(() => {
+    if (allSubmissions.length === 0) return 'None';
+    const counts: Record<string, number> = {};
+    for (const sub of allSubmissions) {
+      for (const item of sub.solve || []) {
+        counts[item] = (counts[item] || 0) + 1;
+      }
+    }
+    const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+    return sorted.length > 0 ? sorted[0][0] : 'None';
   }, [allSubmissions]);
 
   const recentCount = useMemo(() => {
@@ -50,25 +57,24 @@ export const InquiriesStats: React.FC<InquiriesStatsProps> = ({
         </div>
       </div>
 
-      {/* Urgent Leads */}
+      {/* Top Service Requested */}
       <div className="bg-white border border-[#111111]/10 rounded-2xl p-5 sm:p-6 shadow-sm flex flex-col justify-between">
         <div className="flex items-center justify-between text-zinc-400 mb-3">
           <span className="font-outfit text-xs sm:text-sm font-semibold uppercase tracking-wider text-zinc-500">
-            Immediate ("Now")
+            Top Service
           </span>
-          <div className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center">
-            <Sparkles size={16} />
+          <div className="w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-700">
+            <Briefcase size={16} />
           </div>
         </div>
-        <div className="flex items-baseline gap-2">
-          <span className="font-heading text-2xl sm:text-3xl font-bold text-zinc-900">
-            {urgentCount}
+        <div className="flex items-baseline gap-2 truncate">
+          <span className="font-heading text-lg sm:text-xl font-bold text-zinc-900 truncate" title={topService}>
+            {topService}
           </span>
-          <span className="font-outfit text-xs text-zinc-400">high priority</span>
         </div>
       </div>
 
-      {/* Past 7 Days */}
+      {/* Past 7 Days Activity */}
       <div className="bg-white border border-[#111111]/10 rounded-2xl p-5 sm:p-6 shadow-sm flex flex-col justify-between">
         <div className="flex items-center justify-between text-zinc-400 mb-3">
           <span className="font-outfit text-xs sm:text-sm font-semibold uppercase tracking-wider text-zinc-500">
